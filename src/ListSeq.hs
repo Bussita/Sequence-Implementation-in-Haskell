@@ -17,7 +17,8 @@ instance Seq [] where
 
   tabulateS f n = [f i | i <- [0 .. n - 1]]
 
-  mapS = map
+  mapS _ [] = []
+  mapS f (x:xs) = f x ||| mapS f xs
 
   filterS = filter
 
@@ -30,11 +31,15 @@ instance Seq [] where
   showtS s
     | lengthS s == 0 = EMPTY
     | lengthS s == 1 = ELT (nthS s 0)
-    | otherwise = NODE (takeS s (div (lengthS s) 2)) (dropS s (div (lengthS s) 2))
+    | otherwise = let m = div (lengthS s) 2
+                      (l',r') = takeS s m ||| dropS s m
+                  in NODE l' r'
+
 
   showlS s
     | lengthS s == 0 = NIL
-    | otherwise = CONS (nthS s 0) (dropS s 1)
+    | otherwise = let (v,rest) = nthS s 0 ||| dropS s 1
+                  in CONS v rest
   
   joinS = reduceS appendS emptyS
 
