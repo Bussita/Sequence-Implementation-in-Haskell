@@ -6,7 +6,7 @@ import qualified Arr as A
 import qualified Arr as A
 import Arr (empty)
 import Seq (Seq(emptyS, nthS))
--- import Arr ( (!)) no me funciona el operador y me da error de aprseo
+-- import Arr ( (!)) no me funciona el operador y me da error de parseo
 
 instance Seq Arr where
 
