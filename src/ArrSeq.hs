@@ -29,13 +29,13 @@ instance Seq A.Arr where
             (l, r) = takeS s m ||| dropS s m
         in NODE l r
 
-  -- Paralelizamos, pero take y drop son O(1), no cambia la complejidad.
   showlS s
     | lengthS s == 0 = NIL
     | otherwise      =
         let (v, rest) = nthS s 0 ||| dropS s 1
         in CONS v rest
 
+  -- Paralelizamos los show, pero take, drop, y nth son O(1), no cambia la complejidad de la profundidad.
 
   appendS s t
     | lengthS s == 0 = t
@@ -48,15 +48,21 @@ instance Seq A.Arr where
                  ||| reduceS appendS emptyS (dropS s mid)
     in appendS l r
 
+  -- la función appendS tiene profundidad O(1), entonces el maximo de S(x appendS y) para todos x, y en O_r es 1.
+  -- Además, al subdividir el problema en dos, tenemos que resolver a lo sumo lg(|s|) casos distintos
+  -- por lo tanto S(joinS) = O(lg|s|.1) = O(lg|s|)
+
   tabulateS = A.tabulate
+
+  -- Tabulate ya viene implementada en la librería Arr, suponemos que verifica los costos dados.
 
   mapS f s  
     | lengthS s == 0 = emptyS
     | otherwise     = appendS v rest
                         where
                           (v,rest) = singletonS (f (nthS s 0)) ||| mapS f (dropS s 1)
-  
+
+  -- mapS resuelve en paralelo todas las aplicaciones de f(i) y las convierte en singletons, si tenemos que f es O(1), luego
+  -- mapS f s = O(max S(f s_i)) = O(1) ya que todas las f s_i son O(1) y luego la máxima de ellas es O(1)  
   reduceS = undefined
 
-g :: A.Arr a -> A.Arr a -> (Int -> a)
-g s t x= if x >= lengthS s then nthS t (x - lengthS s) else nthS s x
