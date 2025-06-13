@@ -3,13 +3,13 @@ module ArrSeq where
 import Seq
 import Par
 import qualified Arr as A
-import Arr (empty)
-import Seq (Seq(emptyS, nthS))
 -- import Arr ( (!)) no me funciona el operador y me da error de parseo
 
-instance Seq Arr where
+instance Seq A.Arr where
 
   emptyS = A.empty
+  
+  fromList = A.fromList
 
   singletonS x = A.fromList [x]
 
@@ -36,16 +36,11 @@ instance Seq Arr where
         let (v, rest) = nthS s 0 ||| dropS s 1
         in CONS v rest
 
-  {-
-  appendS s@(x:s1) t@(y:s2)
+
+  appendS s t
     | lengthS s == 0 = t
     | lengthS t == 0 = s
-    | otherwise      =
-        let (prim, rest, ult) = singletonS (nthS s 0)
-                              ||| appendS (dropS s 1) (takeS t (lengthS t - 1))
-                              ||| singletonS (nthS t (lengthS t - 1))
-        in fromListS ([prim] ++ [rest] ++ [ult])  -- <- Esto no compila, hay que completarlo bien
-  -}
+    | otherwise      = tabulateS (\x -> if x >= lengthS s then nthS t (x - lengthS s) else nthS s x) (lengthS s + lengthS t)
 
   joinS s =
     let mid = lengthS s `div` 2
@@ -56,9 +51,12 @@ instance Seq Arr where
   tabulateS = A.tabulate
 
   mapS f s  
-    | lengtS s == 0 = emptyS
+    | lengthS s == 0 = emptyS
     | otherwise     = appendS v rest
                         where
                           (v,rest) = singletonS (f (nthS s 0)) ||| mapS f (dropS s 1)
   
   reduceS = undefined
+
+g :: A.Arr a -> A.Arr a -> (Int -> a)
+g s t x= if x >= lengthS s then nthS t (x - lengthS s) else nthS s x
