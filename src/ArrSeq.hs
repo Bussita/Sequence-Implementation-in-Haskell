@@ -11,7 +11,7 @@ instance Seq A.Arr where
   
   fromList = A.fromList
 
-  singletonS x = A.fromList [x]
+  singletonS x = fromList [x]
 
   lengthS = A.length
 
