@@ -65,19 +65,24 @@ instance Seq A.Arr where
   -- mapS resuelve en paralelo todas las aplicaciones de f(i) y las convierte en singletons, si tenemos que f es O(1), luego
   -- mapS f s = O(max S(f s_i)) = O(1) ya que todas las f s_i son O(1) y luego la máxima de ellas es O(1)  
   reduceS op e s  | lengthS s == 0 = e
-                  | otherwise = e `op` (reduceT op (toTree s))
+                  | otherwise = e `op` v
+                                    where
+                                      v = reduceT op (toTree s)
 
 data Tree a = Leaf a | Node (Tree a) (Tree a)
 
 toTree :: A.Arr a -> Tree a
 toTree s  | lengthS s == 1 = Leaf (nthS s 0)
-          | otherwise = Node (toTree (takeS s pp)) (toTree (dropS s pp))
-                                          where
-                                            pp = 2^ilog2((lengthS s)-1)
+          | otherwise = let (l', r') = (toTree (takeS s pp)) ||| (toTree (dropS s pp))
+                        in Node l' r'
+                                where
+                                pp = 2^ilog2((lengthS s)-1)
 
 reduceT :: (a -> a -> a) -> Tree a -> a
 reduceT op (Leaf x) = x
-reduceT op (Node l r) = (reduceT op l) `op` (reduceT op r)
+reduceT op (Node l r) = l' `op` r' 
+                              where
+                                (l',r') = (reduceT op l) ||| (reduceT op r)
 
 ilog2 :: Int -> Int
 ilog2 n
