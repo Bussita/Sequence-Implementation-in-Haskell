@@ -42,15 +42,24 @@ instance Seq [] where
         let (v, rest) = nthS s 0 ||| dropS s 1
          in CONS v rest
 
-  joinS = reduceS appendS emptyS -- ToDo : revisar
+  -- joinS = reduceS appendS emptyS -- ToDo : revisar
 
+  joinS = concat
+
+-- Arreglar, hacer particion PP
   reduceS op e s
     | lengthS s == 0 = e
     | lengthS s == 1 = nthS s 0
     | otherwise =
-        let m = div (lengthS s) 2
-            (l', r') = takeS s m ||| dropS s m
-         in reduceS op e l' `op` reduceS op e r'
+      e
+      where
+          ilog2 :: Int -> Int
+          ilog2 n
+            | n < 1 = error "ilog2 no definido para n < 1"
+            | otherwise = go n 0
+            where
+              go 1 acumulador = acumulador
+              go x acumulador = go (x `div` 2) (acumulador + 1)
 
   scanS op e s
     | lengthS s == 0 = ([], e)
