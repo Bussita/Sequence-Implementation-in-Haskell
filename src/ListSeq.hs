@@ -3,15 +3,18 @@ module ListSeq where
 import GHC.Float
 import Par
 import Seq
+import Arr (empty, length)
 
 instance Seq [] where
   emptyS = []
 
   singletonS x = [x]
 
-  lengthS = length
+  lengthS empty = 0
+  lengthS (x:xs) = 1 + lengthS xs 
 
-  nthS s n = s !! n
+  nthS empty _ = error "Index out of range."  
+  nthS (x:xs) n = if n == 0 then x else nthS xs (n-1)
 
   tabulateS f n = [f i | i <- [0 .. n - 1]]
 
@@ -20,13 +23,18 @@ instance Seq [] where
     where
       (x', rest) = f x ||| mapS f xs
 
-  filterS = filter
+  filterS p empty = empty
+  filterS p xs = [x | p x, x <- xs] 
 
-  appendS = (++)
+  appendS empty t = t
+  appendS (x:xs) t = x : appendS xs t 
 
-  takeS s n = take n s
+  takeS s 0 = empty
+  takeS (x:xs) n = x : takeS xs (n-1)
 
-  dropS s n = drop n s
+  dropS s 0 = s
+  dropS empty _ = empty
+  dropS (x:xs) n = dropS xs (n-1) 
 
   showtS s
     | lengthS s == 0 = EMPTY
@@ -44,7 +52,8 @@ instance Seq [] where
 
   -- joinS = reduceS appendS emptyS -- ToDo : revisar
 
-  joinS = concat
+  joinS empty = empty
+  joinS (s:ss) = nthS s 0 : joinS (dropS 1 s : ss) 
 
 -- Arreglar, hacer particion PP
   reduceS op e s

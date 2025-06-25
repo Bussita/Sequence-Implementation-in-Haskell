@@ -1,9 +1,10 @@
 module ArrSeq where
 
 import Arr qualified as A
+import Data.List (singleton)
 import Par
 import Seq
-import Data.List (singleton)
+import Arr (empty, tabulate)
 
 -- import Arr ( (!)) no me funciona el operador y me da error de parseo
 
@@ -18,7 +19,7 @@ instance Seq A.Arr where
 
   nthS s i = s A.! i
 
-  takeS s n = A.subArray 0 (n - 1) s
+  takeS s n = A.subArray 0 n s
 
   dropS s n = A.subArray n (lengthS s - n) s
 
@@ -53,7 +54,7 @@ instance Seq A.Arr where
   -- la función appendS tiene profundidad O(1), entonces el maximo de S(x appendS y) para todos x, y en O_r es 1.
   -- Además, al subdividir el problema en dos, tenemos que resolver a lo sumo lg(|s|) casos distintos
   -- por lo tanto S(joinS) = O(lg|s|.1) = O(lg|s|)
-  
+
   joinS = A.flatten
 
   tabulateS = A.tabulate
@@ -62,9 +63,7 @@ instance Seq A.Arr where
 
   mapS f s
     | lengthS s == 0 = emptyS
-    | otherwise = appendS v rest
-    where
-      (v, rest) = singletonS (f (nthS s 0)) ||| mapS f (dropS s 1)
+    | otherwise = tabulateS (\i -> f (nthS s i)) (lengthS s)
 
   -- mapS resuelve en paralelo todas las aplicaciones de f(i) y las convierte en singletons, si tenemos que f es O(1), luego
   -- mapS f s = O(max S(f s_i)) = O(1) ya que todas las f s_i son O(1) y luego la máxima de ellas es O(1)
@@ -74,31 +73,43 @@ instance Seq A.Arr where
     | otherwise =
         let m = (lengthS s) `div` 2
             (l', r') = filterS f (takeS s m) ||| filterS f (dropS s m)
-        in appendS l' r'
+         in appendS l' r'
 
   reduceS op e s
-      | lengthS s == 0 = e
-      | otherwise = e `op` (red op s)
-      where
-        red op' s' 
-                  | lengthS s' == 1 = nthS s' 0
-                  | otherwise =
-                      let
-                          pp = 2 ^ (ilog2 (lengthS s' - 1))
-                          (l', r') = reduceS op' e (takeS s' pp) ||| 
-                                     reduceS op' e (dropS s' pp)
-                          a = showtS s'
-                      in l' `op'` r'
+    | lengthS s == 0 = e
+    | otherwise = e `op` red s
+    where
+      red s'
+        | lengthS s' == 1 = nthS s' 0
+        | otherwise =
+            let pp = 2 ^ ilog2 (lengthS s' - 1)
+                (l', r') =
+                  red (takeS s' pp)
+                    ||| red (dropS s' pp)
+             in l' `op` r'
+  
+  --scanS :: (a->a->a) -> a -> A.Arr a -> (A.Arr a, a)
+  scanS op e s
+    | lengthS s == 0 = (emptyS, e)
+    | lengthS s == 1 = (singletonS e, e `op` nthS s 0)
+    | otherwise =
+        let
+            cont :: A.Arr a -> (a->a->a) -> A.Arr a
+            cont l op = tabulateS (\i -> nthS l (2*i) `op` nthS l (2*i + 1)) ((lengthS l `div` 2) - 1)
+            c = cont s op
+            (s', red) = scanS op e c
+            r = tabulateS (\i -> if even i
+                then  nthS c (i `div` 2)
+                else (nthS c (i `div` 2)) `op` (nthS s (i-1))) (lengthS s)
+         in (r, red)
 
-fview :: Seq s => s Char -> s Char -> s Char
-fview s0 s1 = (fromList " (") `appendS` s0 `appendS` (fromList "+") `appendS` s1 `appendS` (fromList ") ")
+fview :: String -> String -> String
+fview s0 s1 = " (" ++ s0 ++ "+" ++ s1 ++ ") "
 
 ilog2 :: Int -> Int
 ilog2 n
-        | n < 1 = error "ilog2 no definido para n < 1"
-        | otherwise = go n 0
-          where
-            go 1 acumulador = acumulador
-            go x acumulador = go (x `div` 2) (acumulador + 1)
-
-
+  | n < 1 = error "ilog2 no definido para n < 1"
+  | otherwise = go n 0
+  where
+    go 1 acumulador = acumulador
+    go x acumulador = go (x `div` 2) (acumulador + 1)
