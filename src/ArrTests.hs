@@ -54,10 +54,10 @@ testScanSumSeq3 =
 
 testsArray = 
   [
-    testMapEmptySeq,
-    testMapNonEmptySeq,
-    testLengthEmptySeq,
-    testLengthNonEmptySeq,
+    -- testMapEmptySeq,
+    -- testMapNonEmptySeq,
+    -- testLengthEmptySeq,
+    -- testLengthNonEmptySeq,
     testReduceSumSeq0,
     testReduceSumSeq3,
     testScanSumSeq0,

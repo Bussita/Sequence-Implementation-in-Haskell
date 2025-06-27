@@ -77,31 +77,54 @@ instance Seq A.Arr where
 
   reduceS op e s
     | lengthS s == 0 = e
-    | otherwise = e `op` red s
+    | otherwise = e `op` red op s
     where
-      red s'
+      red :: (a -> a -> a) -> A.Arr a -> a
+      red op' s'
         | lengthS s' == 1 = nthS s' 0
         | otherwise =
-            let pp = 2 ^ ilog2 (lengthS s' - 1)
-                (l', r') =
-                  red (takeS s' pp)
-                    ||| red (dropS s' pp)
-             in l' `op` r'
+              let 
+                contractS = contract op' s'
+              in
+                red op' contractS
   
-  --scanS :: (a->a->a) -> a -> A.Arr a -> (A.Arr a, a)
   scanS op e s
-    | lengthS s == 0 = (emptyS, e)
-    | lengthS s == 1 = (singletonS e, e `op` nthS s 0)
-    | otherwise =
-        let
-            cont :: A.Arr a -> (a->a->a) -> A.Arr a
-            cont l op = tabulateS (\i -> nthS l (2*i) `op` nthS l (2*i + 1)) ((lengthS l `div` 2) - 1)
-            c = cont s op
-            (s', red) = scanS op e c
-            r = tabulateS (\i -> if even i
-                then  nthS c (i `div` 2)
-                else (nthS c (i `div` 2)) `op` (nthS s (i-1))) (lengthS s)
-         in (r, red)
+     | lengthS s == 0 = (emptyS, e)
+     | lengthS s == 1 = (singletonS e, e `op` nthS s 0)
+     | otherwise =
+         let
+             contractS = contract op s
+             (s', red) = scanS op e contractS
+             r = tabulateS 
+                          (\i -> if even i
+                                   then (nthS s' (i `div` 2))
+                                   else (nthS s' (i `div` 2)) 
+                                        `op` (nthS s (i-1)))
+                           (lengthS s)
+          in (r, red)
+
+     where
+     expand :: (a -> a -> a) -> A.Arr a -> A.Arr a -> A.Arr a
+     expand op' s1 s1' = s1 -- completar
+
+
+contract :: (a -> a -> a) -> A.Arr a -> A.Arr a
+contract op s
+              | lengthS s == 0 = emptyS
+              | lengthS s == 1 = singletonS (nthS s 0)
+              | otherwise =
+                  let
+                    lenS = lengthS s
+                    size = (lenS `div` 2) - 1
+                  in
+                    tabulateS (tabulateFunc op s lenS) size
+              where
+              tabulateFunc :: (a -> a -> a) -> A.Arr a -> Int -> Int -> a
+              tabulateFunc op' s' n' i'
+                | i' == (n' - 1) = nthS s' (n' - 1)
+                | otherwise = nthS s' i' `op'` nthS s' (i' + 1)
+                    
+
 
 fview :: String -> String -> String
 fview s0 s1 = " (" ++ s0 ++ "+" ++ s1 ++ ") "
