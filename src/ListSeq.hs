@@ -86,7 +86,7 @@ instance Seq [] where
             (s', red) = scanS op e cont
             r = expand s s' 0 sLen op
         in (r, red)
-
+        
 
   fromList = id
 
