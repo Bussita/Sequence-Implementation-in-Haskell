@@ -94,19 +94,19 @@ instance Seq A.Arr where
          let
              contractS = contract op s
              (s', red) = scanS op e contractS
-             r = expand op s s'
-         in (r, red)
+             r = expand op s s' -- s' = <x0+x1, (x2 + x3), (x4 + x5)> s'' = <(x0 + x1) + (x2 + x3), x4 + x5>
+         in (r, red) -- (<b, b + ((x0 + x1) + (x2 + x3))>,(b + ((x0 + x1) + (x2 + x3)) + (x4 + x5))
 
      where
      expand :: (a -> a -> a) -> A.Arr a -> A.Arr a -> A.Arr a
-     expand op' s1 s1' =  tabulateS 
-                          (\i -> if even i
+     expand op' s1 s1' =  tabulateS -- s = <x0,x1,x2,x3,x4,x5>
+                          (\i -> if even i 
                                    then (nthS s1' (i `div` 2))
                                    else (nthS s1' (i `div` 2)) 
                                         `op'` (nthS s1 (i - 1)))
                            (lengthS s1)
 
-
+-- r = <b, b + (x0 + x1), b + ((x0 + x1) + (x2 + x3))>
 
 contract :: (a -> a -> a) -> A.Arr a -> A.Arr a
 contract op s
@@ -127,4 +127,7 @@ contract op s
 
 
 fview :: String -> String -> String
-fview s0 s1 = " (" ++ s0 ++ "+" ++ s1 ++ ") "
+fview s0 s1 = "(" ++ s0 ++ "+" ++ s1 ++ ")"
+
+merge :: [Int] -> [Int] -> [Int]
+

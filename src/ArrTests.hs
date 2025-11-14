@@ -11,7 +11,8 @@ s0 = fromList []
 s1 = fromList [4]
 s2 = fromList [5,1]
 s3 = fromList [6,3,4]
-
+s4 :: Arr String
+s4 = fromList ["0","1","2","3","4","5"]
 testLengthEmptySeq :: Test
 testLengthEmptySeq = 
   TestCase $ assertEqual "Error on empty sequence length"
