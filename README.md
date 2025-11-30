@@ -1,5 +1,3 @@
-
-````markdown
 # Sequence-Implementation-in-Haskell
 
 Implementaciones de una estructura de datos `Sequence` en Haskell utilizando listas enlazadas y arrays persistentes con *structural sharing*.
@@ -28,6 +26,7 @@ ghc -O2 src/Sequence.hs
 
 # O carga interactiva
 ghci src/Sequence.hs
+
 ````
 
 Una vez dentro de GHCi:
