@@ -83,7 +83,3 @@ Pueden enviarse issues o pull requests.
 
 Agregar o especificar una licencia en caso de ser necesario mediante un archivo `LICENSE`.
 
-```
-
-Si querés, puedo generar también una versión más formal, una más minimalista, o una más académica tipo informe. ¿Te gustaría alguna variante?
-```
